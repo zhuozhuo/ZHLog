@@ -11,7 +11,7 @@ Pod::Spec.new do |s|
  s.author             = { "Mr.jiang" => "414816566@qq.com" }
  s.platform     = :ios, "7.0"
  s.source       = { :git => "https://github.com/zhuozhuo/ZHLog.git", :tag => s.version }
- s.source_files  = "Classed/*.{h,m}"
+ s.source_files  = "ZHLog/Classes/*.{h,m}"
  s.requires_arc = true
 
 end
