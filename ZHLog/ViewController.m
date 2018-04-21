@@ -38,7 +38,7 @@
     }
     
    
-    
+    [[ZHShareLog shareZHShareLog]printDebugInfo:@"Info" withLevel:ZH_Log_Error];
         
   
     // Do any additional setup after loading the view, typically from a nib.

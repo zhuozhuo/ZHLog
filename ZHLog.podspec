@@ -3,7 +3,7 @@
 Pod::Spec.new do |s|
 
  s.name         = "ZHLog"
- s.version      = "0.1"
+ s.version      = "0.1.1"
  s.summary      = "Printing tools for iOS"
  s.homepage     = "https://github.com/zhuozhuo"
  s.license      = "MIT"
