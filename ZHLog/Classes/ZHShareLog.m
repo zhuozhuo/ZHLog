@@ -10,7 +10,8 @@
 
 @interface ZHShareLog ()
 @property (nonatomic, strong) NSDateFormatter *parser;
-
+@property (nonatomic,strong) NSOperationQueue *queue;
+@property (nonatomic,strong) NSLock *lock;
 @end
 @implementation ZHShareLog
 
@@ -23,13 +24,16 @@
         
     });
     return realTekCommon;
-
+    
 }
 
 -(instancetype)init
 {
     self = [super init];
     if (self) {
+        _lock = [[NSLock alloc]init];
+        self.queue = [[NSOperationQueue alloc] init];
+        self.queue.maxConcurrentOperationCount = 1;
         self.deBugLog = YES;
         self.parser = [[NSDateFormatter alloc] init];
         self.parser.dateStyle = NSDateFormatterNoStyle;
@@ -88,17 +92,15 @@
             }
             printf("%s ",buffer);
         }
-
+        
     }
 }
 
 -(void)printDebugInfo:(NSString *)info
 {
-     if (self.deBugLog && info) {
-         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-             [self writeLogToFile:info];
-         });
-     }
+    if (self.deBugLog && info) {
+        [self writeLogToFile:info];
+    }
 }
 
 -(void)printDebugInfo:(NSString *)info withLevel:(ZH_Log_Level)level
@@ -130,10 +132,7 @@
                 break;
         }
         NSString *logString = [NSString stringWithFormat:@"%@%@ %@",preString,remindString,info];
-        NSLog(@"%@",logString);
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            [self writeLogToFile:logString];
-        });
+       [self writeLogToFile:logString];
     }
 }
 
@@ -204,7 +203,7 @@
             }];
         }
     }
-
+    
 }
 
 
@@ -224,15 +223,16 @@
         }
         [self addSkipBackupAttributeWithPath:path];
     }
-    
-    NSString *writeString = [NSString stringWithFormat:@"\n%@:%@",timeString,logInfo];
-    @synchronized (writeString) {
+    __weak __typeof(self) weakSelf = self;
+    [self.queue addOperationWithBlock:^{
+        [weakSelf.lock lock];
+         NSString *writeString = [NSString stringWithFormat:@"\n%@:%@",timeString,logInfo];
         NSFileHandle *fileHandle = [NSFileHandle fileHandleForUpdatingAtPath:path];
         [fileHandle seekToEndOfFile];//将节点跳到文件末尾
         NSData *stringData = [writeString dataUsingEncoding:NSUTF8StringEncoding];
         [fileHandle writeData:stringData];
-    }
-    
+        [weakSelf.lock unlock];
+    }];
 }
 
 
@@ -270,7 +270,6 @@
 {
     NSString *logPath = [self getLogPath];
     NSString *filePath = [NSString stringWithFormat:@"%@/%@.txt",logPath,fileName];
-    //NSLog(@"filePath:%@",filePath);
     return filePath;
 }
 
@@ -298,7 +297,6 @@
     NSDate *date = [NSDate date];
     NSString *dateFormat = @"yyyy-MM-dd";
     NSString *fileName = [self getStringWithDate:date formatString:dateFormat timeZone:[NSTimeZone systemTimeZone]];
-    //NSLog(@"today fileName:%@",fileName);
     return fileName;
 }
 
@@ -339,7 +337,7 @@
                                   forKey:NSURLIsExcludedFromBackupKey
                                    error:&error];
     if (!success) {
-      NSString *info = [NSString stringWithFormat:@"Error excluding %@ from backup %@", [URL lastPathComponent], error] ;
+        NSString *info = [NSString stringWithFormat:@"Error excluding %@ from backup %@", [URL lastPathComponent], error] ;
         [self printDebugInfo:info withLevel:ZH_Log_Error];
     }
     return success;

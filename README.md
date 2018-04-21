@@ -24,3 +24,27 @@ ZHLog is  a printing tools for iOS!
 
 ## How to use
 
+### [CocoaPods](https://cocoapods.org/) (recommended)
+
+pod 'ZHLog'
+
+### Getting Started
+
+`import <ZHLog/ZHShareLog.h>`
+
+
+
+####Example Usage
+
+```objective-c
+ZHLog(@"zhlog"); 
+ZHLogDebug(@"debug");
+ZHLogInfo(@"Info");
+ZHLogImportant(@"Important");
+ZHLogError(@"error");
+ZHLogWarning(@"warning");
+ZHLogToFile(@"tofile", ZH_Log_Info);
+```
+
+
+
