@@ -21,6 +21,8 @@
     self.title = @"ZHLog";
     self.showTableView.tableFooterView = [UIView new];
     [self initDatas];
+    NSString *test = @"123";
+    NSString *info = [NSString stringWithFormat:@"testLog:%@",test];
   
     ZHLog(@"zhlog");
     ZHLogDebug(@"debug");
@@ -28,6 +30,7 @@
     ZHLogImportant(@"Important");
     ZHLogError(@"error");
     ZHLogWarning(@"warning");
+    ZHLogInfo(@"%@",info);
     
     for (NSInteger i = 0; i<10; i++) {
         ZHLogToFile(@"tofile debug", ZH_Log_Debug);
