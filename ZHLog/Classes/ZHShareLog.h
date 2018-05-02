@@ -30,7 +30,7 @@ ZHLogWarning(@"%@",(logStr));\
 }\
 break;\
 case ZH_Log_Important:{\
-ZHLogInfo(@"%@",(logStr));\
+ZHLogImportant(@"%@",(logStr));\
 [[ZHShareLog shareZHShareLog]printDebugInfo:[NSString stringWithFormat:@"❗️Important: %s [Line %d] %@",__PRETTY_FUNCTION__, __LINE__,(logStr)]];\
 }\
 break;\
