@@ -75,6 +75,8 @@ typedef NS_ENUM(NSInteger,ZH_Log_Level)
 
 @property (nonatomic) BOOL deBugLog;
 
+@property (nonatomic, assign) NSInteger maxFileSize;//Since the Log file is too large to read and write at a slower speed, reenter the Log when it exceeds this size. 
+
 +(instancetype)shareZHShareLog;
 
 -(void)printLogWithBuffer:(Byte *)buffer andLength:(NSUInteger)length andLabel:(NSString *)flagStr;

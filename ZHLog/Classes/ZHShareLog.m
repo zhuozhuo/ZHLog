@@ -31,6 +31,7 @@
 {
     self = [super init];
     if (self) {
+        self.maxFileSize = 600; //kb
         _lock = [[NSLock alloc]init];
         self.queue = [[NSOperationQueue alloc] init];
         self.queue.maxConcurrentOperationCount = 1;
@@ -222,11 +223,28 @@
             NSLog(@"%@",info);
         }
         [self addSkipBackupAttributeWithPath:path];
+    }else{
+        NSError *error = nil;
+        NSFileManager *fileM = [NSFileManager defaultManager];
+        NSDictionary *dict = [fileM attributesOfItemAtPath:path error:&error];
+        if (!error && dict) {
+            unsigned long long size = [dict fileSize];
+            NSInteger kb = size/1024;
+            if (kb > self.maxFileSize) {
+                //先移动文件
+                NSString *newPath = [self getCurrentTimeLogFilePath];
+                [self moveFileFromPath:path toPath:newPath];
+                [self rmFilePath:path];
+                [self writeLogToFile:logInfo];
+            }
+        }
+        
+        
     }
     __weak __typeof(self) weakSelf = self;
     [self.queue addOperationWithBlock:^{
         [weakSelf.lock lock];
-         NSString *writeString = [NSString stringWithFormat:@"\n%@:%@",timeString,logInfo];
+        NSString *writeString = [NSString stringWithFormat:@"\n%@:%@",timeString,logInfo];
         NSFileHandle *fileHandle = [NSFileHandle fileHandleForUpdatingAtPath:path];
         [fileHandle seekToEndOfFile];//将节点跳到文件末尾
         NSData *stringData = [writeString dataUsingEncoding:NSUTF8StringEncoding];
@@ -234,6 +252,36 @@
         [weakSelf.lock unlock];
     }];
 }
+
+
+-(NSString *)getCurrentTimeLogFilePath
+{
+    NSString *fileName = [self getTodayCurrentTimeFileName];
+    NSString *filePath = [self getLogFilePathWithFileName:fileName];
+    return filePath;
+}
+
+-(NSString *)getTodayCurrentTimeFileName
+{
+    NSDate *date = [NSDate date];
+    NSString *dateFormat = @"yyyy-MM-dd-HH-mm-ss";
+    NSString *fileName = [self getStringWithDate:date formatString:dateFormat timeZone:[NSTimeZone systemTimeZone]];
+    return fileName;
+}
+
+
+//移动文件
+-(BOOL)moveFileFromPath:(NSString *)fromPath toPath:(NSString *)toPath
+{
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    if (![fileManager fileExistsAtPath:fromPath]) {
+        NSLog(@"Error: fromPath Not Exist");
+        return NO;
+    }
+    return [fileManager moveItemAtPath:fromPath toPath:toPath error:nil];
+    
+}
+
 
 
 -(BOOL)isFileExists:(NSString *)path
